@@ -15,12 +15,12 @@ class TiltSensorManager(context: Context) : SensorEventListener {
 
     private val rotationMatrix = FloatArray(9)
     private val orientation = FloatArray(3)
-
-    // Esta variável impede que saltem várias palavras
     private var canProcess = true
 
     fun start() {
-        rotationSensor?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI) }
+        rotationSensor?.let {
+            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI)
+        }
     }
 
     fun stop() {
@@ -32,19 +32,18 @@ class TiltSensorManager(context: Context) : SensorEventListener {
             SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
             SensorManager.getOrientation(rotationMatrix, orientation)
 
-            // RollValue em Landscape deteta a inclinação para a testa ou para o chão
-            val rollValue = orientation[2]
+            val pitch = orientation[1]
 
             if (canProcess) {
-                if (rollValue > 0.8f) { // Inclinar para TRÁS (ACERTOU)
+                if (pitch > 0.7f) {
                     canProcess = false
                     onTiltUp?.invoke()
-                } else if (rollValue < -0.8f) { // Inclinar para a FRENTE (ERROU/PASSAR)
+                } else if (pitch < -0.7f) {
                     canProcess = false
                     onTiltDown?.invoke()
                 }
             } else {
-                if (rollValue in -0.4f..0.4f) {
+                if (pitch < 0.3f && pitch > -0.3f) {
                     canProcess = true
                 }
             }

@@ -1,5 +1,6 @@
 package intro.sensors_04_multimedia.tiltjoanasantos.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,8 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.EdgesensorHigh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -25,9 +24,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import intro.sensors_04_multimedia.tiltjoanasantos.R
 import intro.sensors_04_multimedia.tiltjoanasantos.data.GameRepo
 import intro.sensors_04_multimedia.tiltjoanasantos.data.WordCategory
 
@@ -44,13 +45,14 @@ fun MenuScreen(onCategorySelected: (Int) -> Unit) {
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.EdgesensorHigh,
+            Image(
+                painter = painterResource(id = R.drawable.logotipo),
                 contentDescription = null,
-                modifier = Modifier.size(44.dp),
-                tint = MaterialTheme.colorScheme.primary
+                modifier = Modifier.size(50.dp)
             )
+
             Spacer(modifier = Modifier.width(12.dp))
+
             Text(
                 text = "OTILT",
                 fontSize = 38.sp,

@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import intro.sensors_04_multimedia.tiltjoanasantos.R
 import intro.sensors_04_multimedia.tiltjoanasantos.data.WordCategory
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -20,7 +21,6 @@ class GameViewModel : ViewModel() {
     var currentWord by mutableStateOf("")
     var gameState by mutableStateOf("MENU")
 
-    // Controlo de cores
     var backgroundColor by mutableStateOf(Color(0xFF2196F3))
     private var defaultColor = Color(0xFF2196F3)
 
@@ -56,35 +56,14 @@ class GameViewModel : ViewModel() {
         }
     }
 
-    private fun feedback(context: Context, color: Color, soundRes: Int) {
-        viewModelScope.launch {
-            val originalColor = backgroundColor
-            backgroundColor = color
-
-            try {
-                MediaPlayer.create(context, soundRes).start()
-            } catch (e: Exception) {
-            }
-
-            delay(500)
-            backgroundColor = defaultColor
-            nextWord()
-        }
-    }
-
     fun onCorrectAnswer(context: Context) {
         if (gameState == "PLAYING") {
             score++
             viewModelScope.launch {
                 backgroundColor = Color.Green
-                try {
-                    val mp = MediaPlayer.create(context, intro.sensors_04_multimedia.tiltjoanasantos.R.raw.correct)
-                    mp.start()
-                    mp.setOnCompletionListener { it.release() }
-                } catch (e: Exception) { e.printStackTrace() }
-
+                playSound(context, R.raw.correct)
                 nextWord()
-                delay(600)
+                delay(500)
                 backgroundColor = defaultColor
             }
         }
@@ -94,28 +73,21 @@ class GameViewModel : ViewModel() {
         if (gameState == "PLAYING") {
             viewModelScope.launch {
                 backgroundColor = Color.Red
-                try {
-                    val mp = MediaPlayer.create(context, intro.sensors_04_multimedia.tiltjoanasantos.R.raw.wrong)
-                    mp.start()
-                    mp.setOnCompletionListener { it.release() }
-                } catch (e: Exception) { e.printStackTrace() }
-
+                playSound(context, R.raw.wrong)
                 nextWord()
-                delay(600)
+                delay(500)
                 backgroundColor = defaultColor
             }
         }
     }
 
-    private fun playSound(context: Context, isCorrect: Boolean) {
-        val resId = if (isCorrect) {
-            context.resources.getIdentifier("correct", "raw", context.packageName)
-        } else {
-            context.resources.getIdentifier("wrong", "raw", context.packageName)
-        }
-
-        if (resId != 0) {
-            MediaPlayer.create(context, resId).start()
+    private fun playSound(context: Context, resId: Int) {
+        try {
+            val mp = MediaPlayer.create(context, resId)
+            mp.start()
+            mp.setOnCompletionListener { it.release() }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }
