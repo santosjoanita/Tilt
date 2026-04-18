@@ -15,12 +15,12 @@ class TiltSensorManager(context: Context) : SensorEventListener {
 
     private val rotationMatrix = FloatArray(9)
     private val orientation = FloatArray(3)
-    private var lastActionTime: Long = 0
+
+    // Esta variável impede que saltem várias palavras
+    private var canProcess = true
 
     fun start() {
-        rotationSensor?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI)
-        }
+        rotationSensor?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI) }
     }
 
     fun stop() {
@@ -29,21 +29,24 @@ class TiltSensorManager(context: Context) : SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
-            val currentTime = System.currentTimeMillis()
-            if (currentTime - lastActionTime < 1500) return // Bloqueio de 1.5s entre palavras
-
             SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
             SensorManager.getOrientation(rotationMatrix, orientation)
 
-            val pitch = orientation[1]
+            // RollValue em Landscape deteta a inclinação para a testa ou para o chão
+            val rollValue = orientation[2]
 
-            // 45 graus
-            if (pitch > 0.8f) {
-                lastActionTime = currentTime
-                onTiltUp?.invoke()
-            } else if (pitch < -0.8f) {
-                lastActionTime = currentTime
-                onTiltDown?.invoke()
+            if (canProcess) {
+                if (rollValue > 0.8f) { // Inclinar para TRÁS (ACERTOU)
+                    canProcess = false
+                    onTiltUp?.invoke()
+                } else if (rollValue < -0.8f) { // Inclinar para a FRENTE (ERROU/PASSAR)
+                    canProcess = false
+                    onTiltDown?.invoke()
+                }
+            } else {
+                if (rollValue in -0.4f..0.4f) {
+                    canProcess = true
+                }
             }
         }
     }

@@ -6,20 +6,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import intro.sensors_04_multimedia.tiltjoanasantos.R
 import intro.sensors_04_multimedia.tiltjoanasantos.data.WordCategory
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class GameViewModel : ViewModel() {
-
     var score by mutableIntStateOf(0)
     var timeLeft by mutableIntStateOf(45)
     var currentWord by mutableStateOf("")
-    var gameState by mutableStateOf("MENU") // MENU, PLAYING, RESULT
+    var gameState by mutableStateOf("MENU")
+
+    // Controlo de cores
+    var backgroundColor by mutableStateOf(Color(0xFF2196F3))
+    private var defaultColor = Color(0xFF2196F3)
 
     private var wordsList = mutableListOf<String>()
     private var timerJob: Job? = null
@@ -29,6 +32,8 @@ class GameViewModel : ViewModel() {
         score = 0
         timeLeft = 45
         gameState = "PLAYING"
+        defaultColor = Color(category.color)
+        backgroundColor = defaultColor
         nextWord()
     }
 
@@ -42,39 +47,75 @@ class GameViewModel : ViewModel() {
             gameState = "RESULT"
         }
     }
-    fun playSound(context: Context, isCorrect: Boolean) {
-        val resId = if (isCorrect) R.raw.correct else R.raw.wrong
-        MediaPlayer.create(context, resId).start()
-    }
+
     fun nextWord() {
         if (wordsList.isNotEmpty()) {
             currentWord = wordsList.removeAt(0)
         } else {
             gameState = "RESULT"
-            timerJob?.cancel()
         }
     }
 
-    fun onCorrectAnswer() {
+    private fun feedback(context: Context, color: Color, soundRes: Int) {
+        viewModelScope.launch {
+            val originalColor = backgroundColor
+            backgroundColor = color
+
+            try {
+                MediaPlayer.create(context, soundRes).start()
+            } catch (e: Exception) {
+            }
+
+            delay(500)
+            backgroundColor = defaultColor
+            nextWord()
+        }
+    }
+
+    fun onCorrectAnswer(context: Context) {
         if (gameState == "PLAYING") {
             score++
-            nextWord()
-            gameState = "WAITING"
             viewModelScope.launch {
-                delay(1000)
-                gameState = "PLAYING"
+                backgroundColor = Color.Green
+                try {
+                    val mp = MediaPlayer.create(context, intro.sensors_04_multimedia.tiltjoanasantos.R.raw.correct)
+                    mp.start()
+                    mp.setOnCompletionListener { it.release() }
+                } catch (e: Exception) { e.printStackTrace() }
+
+                nextWord()
+                delay(600)
+                backgroundColor = defaultColor
             }
         }
     }
 
-    fun onSkipAnswer() {
+    fun onSkipAnswer(context: Context) {
         if (gameState == "PLAYING") {
-            nextWord()
+            viewModelScope.launch {
+                backgroundColor = Color.Red
+                try {
+                    val mp = MediaPlayer.create(context, intro.sensors_04_multimedia.tiltjoanasantos.R.raw.wrong)
+                    mp.start()
+                    mp.setOnCompletionListener { it.release() }
+                } catch (e: Exception) { e.printStackTrace() }
+
+                nextWord()
+                delay(600)
+                backgroundColor = defaultColor
+            }
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        timerJob?.cancel()
+    private fun playSound(context: Context, isCorrect: Boolean) {
+        val resId = if (isCorrect) {
+            context.resources.getIdentifier("correct", "raw", context.packageName)
+        } else {
+            context.resources.getIdentifier("wrong", "raw", context.packageName)
+        }
+
+        if (resId != 0) {
+            MediaPlayer.create(context, resId).start()
+        }
     }
 }

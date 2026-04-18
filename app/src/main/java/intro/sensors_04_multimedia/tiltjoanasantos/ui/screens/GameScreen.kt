@@ -1,5 +1,7 @@
 package intro.sensors_04_multimedia.tiltjoanasantos.ui.screens
 
+import android.app.Activity
+import android.content.pm.ActivityInfo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,31 +21,30 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import intro.sensors_04_multimedia.tiltjoanasantos.data.GameData
+import intro.sensors_04_multimedia.tiltjoanasantos.data.GameRepo
 import intro.sensors_04_multimedia.tiltjoanasantos.sensors.TiltSensorManager
 import intro.sensors_04_multimedia.tiltjoanasantos.viewmodel.GameViewModel
 
 @Composable
 fun GameScreen(categoryId: Int, navController: NavController, viewModel: GameViewModel) {
     val context = LocalContext.current
-    val activity = context as? android.app.Activity
+    val activity = context as? Activity
 
-    // Forçar Landscape apenas aqui
     DisposableEffect(Unit) {
-        activity?.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         onDispose {
-            activity?.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
     }
 
     val category = remember(categoryId) {
-        GameData.categories.find { it.id == categoryId } ?: GameData.categories.first()
+        GameRepo.categories.find { it.id == categoryId } ?: GameRepo.categories.first()
     }
 
     val tiltManager = remember {
         TiltSensorManager(context).apply {
-            onTiltUp = { viewModel.onCorrectAnswer() }
-            onTiltDown = { viewModel.onSkipAnswer() }
+            onTiltUp = { viewModel.onCorrectAnswer(context) }
+            onTiltDown = { viewModel.onSkipAnswer(context) }
         }
     }
 
@@ -57,18 +58,26 @@ fun GameScreen(categoryId: Int, navController: NavController, viewModel: GameVie
         onDispose { tiltManager.stop() }
     }
 
+    if (viewModel.gameState == "RESULT") {
+        LaunchedEffect(Unit) {
+            navController.navigate("results") {
+                popUpTo("game/$categoryId") { inclusive = true }
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(category.color)),
+            .background(viewModel.backgroundColor),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = viewModel.timeLeft.toString(), fontSize = 48.sp, color = Color.White)
+            Text(text = viewModel.timeLeft.toString(), fontSize = 48.sp, color = Color.White, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(24.dp))
             Text(text = viewModel.currentWord.uppercase(), fontSize = 72.sp, color = Color.White, fontWeight = FontWeight.Black)
             Spacer(modifier = Modifier.height(24.dp))
-            Text(text = "PONTOS: ${viewModel.score}", fontSize = 24.sp, color = Color.White)
+            Text(text = "Pontos: ${viewModel.score}", fontSize = 24.sp, color = Color.White)
         }
     }
 }
