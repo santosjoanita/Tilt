@@ -1,11 +1,14 @@
 package intro.sensors_04_multimedia.tiltjoanasantos.viewmodel
 
+import android.content.Context
+import android.media.MediaPlayer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import intro.sensors_04_multimedia.tiltjoanasantos.R
 import intro.sensors_04_multimedia.tiltjoanasantos.data.WordCategory
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -39,7 +42,10 @@ class GameViewModel : ViewModel() {
             gameState = "RESULT"
         }
     }
-
+    fun playSound(context: Context, isCorrect: Boolean) {
+        val resId = if (isCorrect) R.raw.correct else R.raw.wrong
+        MediaPlayer.create(context, resId).start()
+    }
     fun nextWord() {
         if (wordsList.isNotEmpty()) {
             currentWord = wordsList.removeAt(0)
@@ -53,6 +59,11 @@ class GameViewModel : ViewModel() {
         if (gameState == "PLAYING") {
             score++
             nextWord()
+            gameState = "WAITING"
+            viewModelScope.launch {
+                delay(1000)
+                gameState = "PLAYING"
+            }
         }
     }
 

@@ -1,7 +1,6 @@
 package intro.sensors_04_multimedia.tiltjoanasantos.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,20 +20,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import intro.sensors_04_multimedia.tiltjoanasantos.data.GameData
-import intro.sensors_04_multimedia.tiltjoanasantos.sensors.TiltManager
+import intro.sensors_04_multimedia.tiltjoanasantos.sensors.TiltSensorManager
 import intro.sensors_04_multimedia.tiltjoanasantos.viewmodel.GameViewModel
 
 @Composable
 fun GameScreen(categoryId: Int, navController: NavController, viewModel: GameViewModel) {
     val context = LocalContext.current
+    val activity = context as? android.app.Activity
 
-    // CORREÇÃO: Agora retorna um objeto WordCategory em vez de uma Lista como fallback
+    // Forçar Landscape apenas aqui
+    DisposableEffect(Unit) {
+        activity?.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        onDispose {
+            activity?.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+    }
+
     val category = remember(categoryId) {
         GameData.categories.find { it.id == categoryId } ?: GameData.categories.first()
     }
 
     val tiltManager = remember {
-        TiltManager(context).apply {
+        TiltSensorManager(context).apply {
             onTiltUp = { viewModel.onCorrectAnswer() }
             onTiltDown = { viewModel.onSkipAnswer() }
         }
@@ -47,17 +54,7 @@ fun GameScreen(categoryId: Int, navController: NavController, viewModel: GameVie
     }
 
     DisposableEffect(Unit) {
-        onDispose {
-            tiltManager.stop()
-        }
-    }
-
-    if (viewModel.gameState == "RESULT") {
-        LaunchedEffect(Unit) {
-            navController.navigate("results") {
-                popUpTo("game/$categoryId") { inclusive = true }
-            }
-        }
+        onDispose { tiltManager.stop() }
     }
 
     Box(
@@ -66,34 +63,12 @@ fun GameScreen(categoryId: Int, navController: NavController, viewModel: GameVie
             .background(Color(category.color)),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = viewModel.timeLeft.toString(),
-                fontSize = 48.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = viewModel.timeLeft.toString(), fontSize = 48.sp, color = Color.White)
             Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = viewModel.currentWord.uppercase(),
-                fontSize = 72.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Black
-            )
-
+            Text(text = viewModel.currentWord.uppercase(), fontSize = 72.sp, color = Color.White, fontWeight = FontWeight.Black)
             Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "Pontos: ${viewModel.score}",
-                fontSize = 24.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Medium
-            )
+            Text(text = "PONTOS: ${viewModel.score}", fontSize = 24.sp, color = Color.White)
         }
     }
 }
