@@ -34,6 +34,10 @@ import intro.sensors_04_multimedia.tiltjoanasantos.data.WordCategory
 
 @Composable
 fun MenuScreen(onCategorySelected: (Int) -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val activity = context as? android.app.Activity
+    activity?.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
     Column(
         modifier = Modifier
             .fillMaxSize()

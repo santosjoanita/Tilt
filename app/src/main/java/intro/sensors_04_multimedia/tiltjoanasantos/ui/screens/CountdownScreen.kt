@@ -31,7 +31,7 @@ fun CountdownScreen(categoryId: Int, navController: NavController) {
 
     DisposableEffect(Unit) {
         activity?.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-        onDispose { } // Deixamos o GameScreen manter o landscape
+        onDispose { }
     }
 
     LaunchedEffect(Unit) {
