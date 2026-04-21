@@ -14,7 +14,6 @@ class TiltSensorManager(context: Context) : SensorEventListener {
     var onTiltDown: (() -> Unit)? = null
 
     private val rotationMatrix = FloatArray(9)
-    private val orientation = FloatArray(3)
     private var canProcess = true
 
     fun start() {
@@ -29,21 +28,28 @@ class TiltSensorManager(context: Context) : SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
+            // Obtém a matriz de rotação a partir do vetor
             SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
-            SensorManager.getOrientation(rotationMatrix, orientation)
-
-            val pitch = orientation[1]
+            
+            // Se o ecrã estiver virado para o céu, este valor aproxima-se de 1.0.
+            // Se o ecrã estiver virado para o chão, aproxima-se de -1.0.
+            // Se o telemóvel estiver vertical, aproxima-se de 0.0.
+            val screenZ = rotationMatrix[8]
 
             if (canProcess) {
-                if (pitch > 0.7f) {
+                // Inclinar para TRÁS-> Certo
+                if (screenZ > 0.7f) {
                     canProcess = false
                     onTiltUp?.invoke()
-                } else if (pitch < -0.7f) {
+                } 
+                // Inclinar para FRENTE -> Errado
+                else if (screenZ < -0.7f) {
                     canProcess = false
                     onTiltDown?.invoke()
                 }
             } else {
-                if (pitch < 0.3f && pitch > -0.3f) {
+                // voltar à posição vertical
+                if (screenZ < 0.3f && screenZ > -0.3f) {
                     canProcess = true
                 }
             }

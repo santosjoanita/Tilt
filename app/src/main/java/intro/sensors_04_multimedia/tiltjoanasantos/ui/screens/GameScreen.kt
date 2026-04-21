@@ -5,9 +5,14 @@ import android.content.pm.ActivityInfo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -69,10 +74,33 @@ fun GameScreen(categoryId: Int, navController: NavController, viewModel: GameVie
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(viewModel.backgroundColor),
-        contentAlignment = Alignment.Center
+            .background(viewModel.backgroundColor)
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+        Button(
+            onClick = {
+                viewModel.gameState = "MENU"
+                navController.navigate("menu") {
+                    popUpTo("menu") { inclusive = true }
+                }
+            },
+            modifier = Modifier
+                .padding(24.dp)
+                .align(Alignment.BottomEnd),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.White.copy(alpha = 0.3f),
+                contentColor = Color.White
+            ),
+            shape = RoundedCornerShape(12.dp),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+        ) {
+            Text("MENU", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+        }
+
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(text = viewModel.timeLeft.toString(), fontSize = 48.sp, color = Color.White, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(24.dp))
             Text(text = viewModel.currentWord.uppercase(), fontSize = 72.sp, color = Color.White, fontWeight = FontWeight.Black)
